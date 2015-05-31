@@ -1,5 +1,9 @@
-Dorkbotlondon
+EulerRoom
 ===================
+
+This is copied from the dorkbotlondon.org website, hope they don't mind.
+
+Their instructions are below.
 
 How to add Dorkbot events
 --------------------------------------------------------
