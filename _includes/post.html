@@ -23,30 +23,17 @@
 </div>
 
 <!-- time zone stuff -->
-<script src="../scripts/moment.js"></script>
+
 <script type="text/javascript">
-(function(){
-  var getDateDisplay = function(startString, endString){
-    var startDate = moment(startString, moment.ISO_8601, true);
-    var endDate = moment(endString, moment.ISO_8601, true);
 
-    if (!startDate.isValid()) return '';
-
-    var final = startDate.format('lll');
-
-    if (endDate.isValid()){
-      final += ' - ' + endDate.format('h:mm A');
-    }
-
-    final += ' (times are ' + startDate.format('Z') + ' UTC)';
-
-    return final;
-  };
+window.addEventListener('load', function(){
 
   var startString = "{{ post.start }}";
   var endString = "{{ post.end }}";
+  var timezone = "{{ post.timezone }}";
   var span = document.getElementById('dateString');
-  span.appendChild(document.createTextNode(getDateDisplay(startString, endString)));
+  var finalText = window.eulerroom.getDateDisplay(startString, endString, timezone);
+  span.appendChild(document.createTextNode(finalText));
 
-})();
+});
 </script>

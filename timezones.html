@@ -1,0 +1,17 @@
+---
+layout: default
+---
+
+<ul id="list"></ul>
+
+<script type="text/javascript">
+  window.addEventListener('load', function(){
+    var names = moment.tz.names();
+    var list = document.getElementById('list');
+    for (var i = 0; i < names.length; i++) {
+      var item = document.createElement('li');
+      item.appendChild(document.createTextNode(names[i]));
+      list.appendChild(item);
+    }
+  });
+</script>
