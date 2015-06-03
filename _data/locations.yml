@@ -4,3 +4,6 @@ south_bank_centre:
 slaboratory:
     where: Slaboratory, Sheffield
     where_html: Slaboratory, Sheffield
+livecoding_tv:
+    where: livecoding.tv
+    where_html: <a href="http://livecoding.tv">livecoding.tv</a>
