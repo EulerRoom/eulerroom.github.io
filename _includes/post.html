@@ -1,0 +1,39 @@
+{% include header.html %}
+<pre>
+{% if post.start %}<b>When:</b> <span id="dateString"></span>{% endif %}
+{% if post.where %}<b>From:</b> {{ site.data.locations.[post.where].where_html }}
+{% endif %}
+{{ post.content }}
+{{ site.data.locations.[post.where].directions }}
+
+</pre>
+
+<div id="paginator">
+    {% if post.previous.url %}
+        <a href="{{ post.previous.url }}">
+        &laquo; Previously</a>
+    {% endif %}
+
+    {% if post.next.url %}
+        <span class="more">
+        <a href="{{ post.next.url }}">
+        After this &raquo; </a>
+        </span>
+    {% endif %}
+</div>
+
+<!-- time zone stuff -->
+
+<script type="text/javascript">
+
+window.addEventListener('load', function(){
+
+  var startString = "{{ post.start }}";
+  var endString = "{{ post.end }}";
+  var timezone = "{{ post.timezone }}";
+  var span = document.getElementById('dateString');
+  var finalText = window.eulerroom.getDateDisplay(startString, endString, timezone);
+  span.appendChild(document.createTextNode(finalText));
+
+});
+</script>

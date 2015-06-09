@@ -1,0 +1,4 @@
+name: EulerRoom
+description: EulerRoom
+markdown: rdiscount
+permalink: /:title/
