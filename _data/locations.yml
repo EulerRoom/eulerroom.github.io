@@ -4,6 +4,12 @@ south_bank_centre:
 slaboratory:
     where: Slaboratory, Sheffield
     where_html: Slaboratory, Sheffield
-livecoding_tv:
-    where: livecoding.tv
-    where_html: <a href="http://livecoding.tv">livecoding.tv</a>
+access_space:
+    where: Access Space, Sheffield
+    where_html: Access Space, Sheffield
+left_bank:
+    where: Left Bank, Leeds
+    where_html: Left Bank, Leeds
+wharf_chambers:
+    where: Wharf Chambers, Leeds
+    where_html: Wharf Chambers, Leeds
