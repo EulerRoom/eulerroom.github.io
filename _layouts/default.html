@@ -2,12 +2,25 @@
 
 <html>
     <head>
+	<link href='http://fonts.googleapis.com/css?family=Istok+Web:400,700' rel='stylesheet' type='text/css'>
         <meta charset="utf-8"/>
         <title>{% if page.title %} {{ page.title }} | {% endif %} {{ site.name }}</title>
         <style>
             body {
                 margin-left: 30px;
+	        max-width:500px;
+   	        font-family: 'Istok Web', sans-serif;
             }
+	    .codeface {
+	      float: right;
+	    }
+	    h3 {
+	    padding: 0;
+	    margin: 0;
+	    }
+	    .label {
+	      font-style:italic;
+	    }
         </style>
     </head>
 
@@ -19,7 +32,6 @@
         <script src="/scripts/moment.js"></script>
         <script src="/scripts/moment-timezone-with-data-2010-2020.min.js"></script>
         <script src="/scripts/custom.js"></script>
-
     </body>
 
 </html>

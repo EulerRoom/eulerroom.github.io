@@ -1,12 +1,14 @@
 {% include header.html %}
-<pre>
-{% if post.start %}<b>When:</b> <span id="dateString"></span>{% endif %}
-{% if post.where %}<b>From:</b> {{ site.data.locations.[post.where].where_html }}
+<div id="post">
+<div id="preamble">
+<dl id="whenwhere">{% if post.start %}<dt>When:</dt><dd><span id="dateString"></span></dt>{% endif %}
+{% if post.where %}<dt>From:</dt><dd>{{ site.data.locations.[post.where].where_html }}</dd>
 {% endif %}
+</dl>
+</div>
 {{ post.content }}
 {{ site.data.locations.[post.where].directions }}
 
-</pre>
 
 <div id="paginator">
     {% if post.previous.url %}
@@ -37,3 +39,4 @@ window.addEventListener('load', function(){
 
 });
 </script>
+</div>
