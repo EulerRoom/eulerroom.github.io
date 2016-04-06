@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Placard Headphone Festival 2011</title>
+<style>
+
+body {
+  font-family: verdana, helvetica, sans-serif;
+  background: #fff;
+}
+
+div#content {
+  width: 700px;
+  margin-left: 100px;
+}
+
+div.photo {
+  float: right;
+  border: 1px solid black;
+  margin: 5px;
+  padding: 5px;
+  font-style: italic;
+}
+
+
+div.photo img {
+  margin: 0px 0px 5px 0px;
+}
+
+div#players {
+line-height: 200%;
+}
+
+img.thumb {
+  height: 42px;
+  float: left;
+  margin: 2px;
+}
+
+div.player {
+margin: 4px 12px;
+white-space: nowrap;
+padding: 4px;
+minimum-height: 200px;
+float: left;
+height: 50px;
+}
+
+</style>
+</head>
+<body>
+<script src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+<script src="players.js"></script>
+<script>
+$(document).ready(function(){
+text = "";
+while (players.length > 0) {
+    i = Math.floor(Math.random() * players.length);
+    text += '<div class="player">' + players[i] + '</div> ';
+    players[i] = players[players.length - 1];
+    players.pop();
+}
+$("div#players").html(text);
+
+});
+</script>
+
+<h1>Sheffield Placard Headphone Festival 2011</h1>
+<div id="content">
+
+<div class="photo">
+<img src="images/red-thumb.jpeg" /><br />
+From our headphones to yours.
+</div>
+
+<p>
+Time: Midday - midnight, Saturday 16th July 2011<br />
+Place: Access Space, Sidney Street<br />
+Antisocial: <a href="http://www.facebook.com/event.php?eid=162867633772525">Facebook</a><br />
+International website: <a href="http://leplacard.org">leplacard.org</a><br />
+Remember: <strong>*bring your own headphones*</strong>
+</p>
+
+<h2>about placard</h2>
+
+<p>Le placard is an international, streamed headphone festival running
+since 1998. [<a href="background.html">read more</a>]
+</p>
+
+<h2>players</h2>
+
+In no particular order:
+
+<div id="players"></div>
+<br style="clear:both" />
+<p>
+We still have some slots in the schedule left to fill.  If you're
+interested, please contact us
+at <a href="mailto:placard2011@lurk.org">placard2011@lurk.org</a> with
+a vague description of what you'd like to do.
+</p>
+
+<p>Audience and players alike will need to <strong>bring your own headphones</strong> or borrow someone else's, otherwise you won't be able to hear the acts!
+</p>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+<html>
+<head>
+<title>Sheffield Placard Headphone Festival 2011</title>
+<style>
+div#flyer {
+  width: 500;
+  background-color:#f5f7f6;
+  font-family: 
+    "Avant Garde Gothic",	/* HP font name */
+    "Avant Garde",		/* MacOS */
+    "Century Gothic",           /* Windows (HP printer) */
+    "URW Gothic L",		/* Unix+X+FontConfig */
+/* Fallback options */
+    helvetica,			/* Unix+X, MacOS */
+    sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #e8a781;
+    font-size: 20px;
+    text-align: center;
+}
+
+span.odd {
+   color: #bfbfbd;
+}
+
+div#players {
+margin: 25px 8px 20px 8px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+
+div#foot {
+  font-size: 25px;
+  background-color: #b2c803;
+  color: #fff;
+  padding: 8px;
+}
+
+div.smallinfo {
+  padding: 3px 0px 0px 0px;
+  font-size: 13px;
+}
+
+div#foot strong {
+  color: #000;
+}
+
+
+</style>
+<script src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+<script src="players.js"></script>
+<script>
+$(document).ready(function(){
+text = "In no particular order: ";
+odd = true;
+while (players.length > 0) {
+    i = Math.floor(Math.random() * players.length);
+    text += '<span ';
+    if (odd == true) {
+        text += ' class="odd"';
+    }
+    text += '>' + players[i] + '</span> ';
+    players[i] = players[players.length - 1];
+    players.pop();
+    odd = !odd;
+}
+
+text += '<span ';
+if (odd == true) {
+   text += ' class="odd"';
+}
+text += '>+&nbsp;more&nbsp;tbc</span> ';
+
+$("div#players").html(text);
+cos = ['<a href="http://www.access-space.org/">access space</a>', '<a href="http://soundcloud.com/bycrookorbyhook">Nice</a>', '<a href="http://yaxu.org/">yaxu</a>'];
+
+text = "";
+first = true;
+while (cos.length > 0) {
+    i = Math.floor(Math.random() * cos.length);
+    if (first) {
+      first = false;
+    }
+    else {
+      if (cos.length == 1) {
+         text += ' and ';
+      }
+      else {
+         text += ', ';
+      }
+    }
+
+    text += cos[i];
+    cos[i] = cos[cos.length - 1];
+    cos.pop();
+    odd = !odd;
+}
+$("span#cos").html(text);
+
+});
+</script>
+</head>
+
+<body>
+<div id="flyer">
+<img src="sheffieldplacrd.png"
+title="Sheffield placard headphone festival" /> <br />
+<div id="players"></div>
+<div id="foot">
+<strong>BRING YOUR OWN HEADPHONES</strong><br />
+SATURDAY 16TH JULY 2011<br />36 acts from midday - midnight<br />
+<a href="http://www.access-space.org/doku.php?id=contact:start">ACCESS SPACE</a> SHEFFIELD<br />
+<strong>BRING YOUR OWN HEADPHONES</strong><br />
+Out of town? Watch live video stream + chat here on the day.
+<strong>BRING YOUR OWN HEADPHONES</strong><br />
+<div class="smallinfo">
+Contact: <a href="mailto:placard2011@lurk.org">placard2011@lurk.org</a><br />
+A collaboration of many including <span id="cos"></span>. 
+<a href="background.html">press info</a> - <a href="http://leplacard.org/2011/">international placard site</a> - <a href="http://www.facebook.com/event.php?eid=162867633772525">facebook event</a><br />
+</div>
+</div>
+</div>
+</body>
+</html>

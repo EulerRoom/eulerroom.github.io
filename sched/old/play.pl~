@@ -1,0 +1,365 @@
+#!/usr/bin/perl -w
+
+#    play.pl - event scheduler
+#    (c) copyright 2005 alex mclean - alex@slab.org
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; see the file COPYING.  If not, write to
+#    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+#    Boston, MA 02111-1307, USA.
+
+
+
+use strict;
+use Data::Dumper;
+use Time::HiRes qw(sleep);
+use IO::File;
+use LWP::Simple;
+#use Net::OpenSoundControl::Client;
+use YAML;
+
+#my $client = Net::OpenSoundControl::Client->new(Host => "localhost",
+#                                                Port => 7777
+#                                               )
+#  or die "Could not start client: $@\n";
+
+use Curses;
+
+my %last_playing = (1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0);
+
+open(NOWPLAYING, ">/tmp/playing.txt")
+  or die;
+
+open(BUG, ">>/tmp/debug2.txt")
+  or die;
+BUG->autoflush;
+print(BUG "start\n");
+
+sub init {
+    initscr;
+    cbreak;
+    noecho;
+    keypad 1;
+    nonl;
+    nodelay 1;
+}
+
+##
+
+sub play {
+    my $current = 0;
+
+    while (1) {
+	my $artists = load();
+	
+	my $now = now();
+
+	my %sorted;
+	foreach my $artist (@$artists) {
+	    if($artist->{start_int} > $now) {
+		push(@{$sorted{future}}, $artist);
+	    }
+	    elsif ($artist->{stop_int} <= $now) {
+		push(@{$sorted{past}}, $artist);
+	    }
+	    else {
+		push(@{$sorted{current}}, $artist);
+	    }
+	}
+	my %lookup = (1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0);
+	
+	my $time = Time::HiRes::gettimeofday();
+	sleep(1 - ($time - int($time)));
+	my $value = 0;
+	foreach my $artist (@{$sorted{current}}) {
+	    $value = $value | $artist->{position};
+	}
+	
+	if ($value != $current) {
+	    out($value);
+	    $current = $value;
+	}
+	
+	my %osc_info;
+
+	my @setup;
+	my $playpositions = 0;
+	foreach my $place (1 .. 5) {
+	    my $leftchannel  = ($place - 1) * 2;
+	    my $rightchannel = $leftchannel + 1;
+	    my @players;
+	    foreach my $artist (@{$sorted{current}}) {
+		if (vec(chr($artist->{position}), $leftchannel , 1)
+		    or 
+		    vec(chr($artist->{position}), $rightchannel, 1)
+		   ) {
+		    push @players, $artist;
+		    push(@{$osc_info{playing}}, 
+			 [$artist, $place, $artist->{stop_int} - $now]
+			);
+		}
+	    }
+	    if (@players) {
+		$lookup{$place} = 1;
+		addstr(1, 5, "NOW PLAYING:");
+		addstr(3 + $playpositions, 10, ' ' x 60);
+		
+		addstr(3 + $playpositions, 10, 
+		       join(', ', 
+			    map {
+				my $seconds = $_->{stop_int} - $now;
+				"$_->{name}"
+				    . " - "
+				      . secs2string($seconds)
+					. " left"
+				} @players
+			   )
+		      );
+		++$playpositions;
+	    }
+	    
+	    
+	    if (not @players) {
+		my @future = 
+		  sort {$a->{start_int} <=> $b->{start_int}}
+		    grep {
+			vec(chr($_->{position}), 
+			    $leftchannel , 1)
+			  or 
+			    vec(chr($_->{position}), 
+				$rightchannel, 1)}
+		      @{$sorted{future}};
+		
+		addstr($place * 2, 10, ' ' x 60);
+		if (@future) {
+		    push @setup, $future[0];
+		}
+	    }
+	}
+	
+	my $trigger = 0;
+	foreach my $place (1 .. 5) {
+	    if ($lookup{$place} != $last_playing{$place}) {
+		$trigger++;
+	    }
+	    $last_playing{$place} = $lookup{$place};
+	}
+	if ($trigger) {
+	    #$client->send(['/trigger']);
+	}
+	
+	if (@setup) {
+	    addstr(9, 5, "next:");
+	    @setup = sort {$a->{start_int} <=> $b->{start_int}}
+	      @setup;
+	    my $setups = 0;
+	    foreach my $setup_artist (@setup) {
+		my @places;
+		my $position = $setup_artist->{position};
+		foreach my $place2 (1 .. 5) {
+		    my $leftchannel  = ($place2 - 1) * 2;
+		    my $rightchannel = $leftchannel + 1;
+		    if (vec(chr($position), 
+			    $leftchannel , 1)
+			or 
+			vec(chr($position),
+			    $rightchannel, 1)
+		       ) {
+			push @places, $place2;
+		    }
+		}
+		
+		push(@{$osc_info{setting_up}}, 
+		     [$setup_artist, $places[0], 
+		      $setup_artist->{start_int} - $now
+		     ]
+		    );
+		
+		my $seconds = $setup_artist->{start_int} - $now;
+		addstr($setups + 10, 5, 
+		       "[$setup_artist->{start_time}] $setup_artist->{name}"
+		       #. ($setup_artist->{name} =~ /Dallas/
+		#	  ? ' from outside in the carpark'
+		#	  : ' at input ' . join(', ', @places)
+		       #)
+		       . " - starting in "
+		       . secs2string($seconds)
+		       . ""
+		      );
+		++$setups;
+	    }
+	}
+	
+	send_osc(\%osc_info);
+
+	refresh();
+	clear;
+	#addstr(15, 0, 'headphone jack adaptors available on the door, please return them');
+	#addstr(16, 0, 'numbers on the sockets: 1 = quiet, 4 = LOUD');
+#close STDERR;
+#		if (open(IRC, "tail -9 /home/alex/.gaim/logs/irc/yaxupaxo\@irc.leplacard.org/#placard.chat/2005-09-10.234631.txt|")) {
+#		    my $irc = join('', <IRC>);
+#		    addstr(17, 0, $irc);
+#		    close IRC;
+#		}	
+    }
+}
+
+sub out {
+    my $value = shift;
+    #system("./usbout $value");
+}
+
+##
+
+sub now {
+    time2int(join(':', (localtime(time))[2,1,0]));
+}
+
+##
+sub time2int { 
+    my $time = shift; 
+    return unless $time;
+    my ($hour, $minute, $second) = $time =~ /(\d+):(\d+)(?::(\d+))?/;
+    $second ||= 0;
+    my $day = 24 * 60 * 60;
+    my $eightam = 8 * 60 * 60;
+    my $result = ((($hour * 60) + $minute) * 60) + $second;
+    if ($result < $eightam) {
+	$result += $day;
+    }
+    return($result);
+}           
+
+sub secs2string {
+    my $secs = shift;
+    my $mins = int($secs / 60);
+    $secs = $secs % 60;
+    return($mins . 'm' . $secs . 's');
+}
+
+sub time2int_broke {
+    my $time = shift;
+    return unless $time;
+    my ($hour, $minute, $second) = $time =~ /(\d+):(\d+)(?::(\d+))?/;
+    $second ||= 0;
+    my $midday = 12 * 60 * 60;
+    my $result = (abs((((($hour * 60) + $minute) * 60) - $midday) + $second));
+    return($result);
+}
+
+##
+
+sub load {
+    my @artists;
+    
+    open(FH, "<./timetable");
+    while(defined($_ = <FH>)) {
+	chomp;
+	
+	#if (/^(\d+:\d+(?::\d+)?)\s+\-\s+(\d+:\d+(?::\d+)?)\s+(\d+)\s+(.+)/) {
+	    #my ($start, $stop, $position, $artist) = ($1, $2, $3, $4);
+
+	if (/^\*\s+\[(\d+|[abcde]+)\]\s*(\d\d:?\d\d)\s+(.+?)(?:\(.*)?$/) {
+	    my ($position, $start, $artist) = ($1, $2, $3);
+            if ($position =~ /[abcd]/) {
+                my $tmp = 0;
+                $tmp += 3 if ($position =~ /a/);
+                $tmp += 12 if ($position =~ /b/);
+                $tmp += 48 if ($position =~ /c/);
+                $tmp += 192 if ($position =~ /d/);
+                $tmp += 768 if ($position =~ /e/);
+                $position = $tmp;
+            }
+            $start =~ s/(\d\d)(\d\d)/$1:$2/;
+	    my ($hour, $minute) = ($start =~ /(\d\d):(\d\d)/);
+            my $stop;
+            $minute = $minute + 30;
+	    if ($artist =~ /cheap/i) {
+	      $minute += 20;
+	    }
+	    if ($artist =~ /gray/i) {
+ 	      $minute += 10;
+            }
+            if ($minute >= 60) {
+                $minute -= 60;
+                $hour++;
+		if ($hour == 24) {
+		    $hour = 0;
+		}
+            }
+            $stop = sprintf("%02d:%02d", $hour, $minute);
+	    
+	    next unless $artist;
+	    if($artist =~ /^break/) {
+		next;
+	    }
+	    
+	    $artist =~ s/\s*$//;
+	    $artist =~ s/\s*\*\*\*.*$//;
+	    
+	    push(@artists, {name       => $artist, 
+			    start_time => $start, 
+			    stop_time  => $stop,
+			    start_int  => time2int($start), 
+			    stop_int   => time2int($stop),
+			    position   => $position,
+			   }
+		);
+	}
+    }
+    close FH;
+    print BUG now() . "\n";
+    return \@artists;
+}
+
+##
+
+sub send_osc {
+    my $info = shift;
+    my @message;
+    if ($info->{playing} and @{$info->{playing}}) {
+	my $playing = $info->{playing}->[0];
+	push(@message, 
+	     "On now: $playing->[0]->{name}\n\n"
+	    );
+    }
+    else {
+	push(@message,
+	     "no one playing right now\n"
+	    );
+    }
+    
+    if ($info->{setting_up} and @{$info->{setting_up}}) {
+	foreach my $setting_up (@{$info->{setting_up}}) {
+	    push(@message,
+		 "$setting_up->[0]->{name} - on in " . secs2string($setting_up->[2]) . "\n"
+		);
+	}
+    }
+#    $client->send(['/text/ascii', 
+#		   s => join('', @message)
+#		  ]
+#		 );
+    open(NOWPLAYING, ">/tmp/playing.txt");
+    print NOWPLAYING join('', @message);
+    close NOWPLAYING;
+
+    print BUG Dump \@message;
+}
+
+##
+
+init();
+play();
+
