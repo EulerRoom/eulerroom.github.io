@@ -16,3 +16,7 @@ wharf_chambers:
 odihq:
     where: Open Data Institute, London
     where_html: Open Data Institute, London
+online:
+    where: online stream only
+    where_html: online stream only
+    
